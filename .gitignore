@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+config.json
+
+# Electron builder output
+*.dmg
+*.zip
+*.app
+
+# IDE
+.idea/
+.vscode/
+*.swp

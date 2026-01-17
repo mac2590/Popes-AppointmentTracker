@@ -1,0 +1,40 @@
+{
+  "name": "popes-appointment-tracker",
+  "version": "1.0.0",
+  "description": "Family Appointment Tracker with Google Calendar integration",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "author": "Popes Family",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "googleapis": "^129.0.0",
+    "keytar": "^7.9.0",
+    "nodemailer": "^6.9.8",
+    "node-schedule": "^2.1.1",
+    "electron-store": "^8.1.0"
+  },
+  "build": {
+    "appId": "com.popes.appointment-tracker",
+    "productName": "Popes Appointment Tracker",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.icns",
+      "target": ["dmg", "zip"]
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*",
+      "node_modules/**/*"
+    ]
+  }
+}

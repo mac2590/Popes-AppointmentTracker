@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net;">
+  <title>Popes Appointment Tracker</title>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Drag region for macOS window -->
+  <div class="drag-region"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="app-title">Popes Family</h1>
+        <p class="app-subtitle">Appointment Tracker</p>
+      </div>
+
+      <!-- Connection Status -->
+      <div class="connection-section">
+        <div id="connection-status" class="status-indicator disconnected">
+          <span class="status-dot"></span>
+          <span class="status-text">Not Connected</span>
+        </div>
+        <button id="connect-btn" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.372 0 0 5.373 0 12s5.372 12 12 12c6.627 0 12-5.373 12-12S18.627 0 12 0zm.14 19.018c-3.868 0-7-3.14-7-7.018c0-3.878 3.132-7.018 7-7.018c1.89 0 3.47.697 4.682 1.829l-1.974 1.978v-.004c-.735-.702-1.667-1.062-2.708-1.062c-2.31 0-4.187 1.956-4.187 4.273c0 2.315 1.877 4.277 4.187 4.277c2.096 0 3.522-1.202 3.816-2.852H12.14v-2.737h6.585c.088.47.135.96.135 1.474c0 4.01-2.677 6.86-6.72 6.86z"/>
+          </svg>
+          Connect Google Calendar
+        </button>
+      </div>
+
+      <!-- Categories Legend -->
+      <div class="categories-section">
+        <h3>Categories</h3>
+        <ul class="category-legend">
+          <li><span class="category-dot work"></span> Work</li>
+          <li><span class="category-dot business"></span> Building Business</li>
+          <li><span class="category-dot holiday"></span> Holidays</li>
+          <li><span class="category-dot date"></span> Date Nights</li>
+          <li><span class="category-dot seb"></span> Seb</li>
+          <li><span class="category-dot other"></span> Other</li>
+        </ul>
+      </div>
+
+      <!-- Settings Button -->
+      <div class="sidebar-footer">
+        <button id="settings-btn" class="btn btn-secondary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Settings
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- View Toggle -->
+      <div class="toolbar">
+        <div class="view-toggle">
+          <button id="week-view-btn" class="view-btn active">Week</button>
+          <button id="month-view-btn" class="view-btn">Month</button>
+        </div>
+        <button id="refresh-btn" class="btn btn-icon" title="Refresh">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Calendar Container -->
+      <div id="calendar"></div>
+
+      <!-- Loading Overlay -->
+      <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p>Loading events...</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Settings</h2>
+        <button id="close-settings" class="btn btn-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Google Credentials Section -->
+        <section class="settings-section">
+          <h3>Google API Credentials</h3>
+          <p class="help-text">Enter your Google Cloud OAuth credentials. <a href="#" id="credentials-help">How to get these?</a></p>
+          <div class="form-group">
+            <label for="client-id">Client ID</label>
+            <input type="text" id="client-id" placeholder="your-client-id.apps.googleusercontent.com">
+          </div>
+          <div class="form-group">
+            <label for="client-secret">Client Secret</label>
+            <input type="password" id="client-secret" placeholder="Your client secret">
+          </div>
+          <button id="save-credentials-btn" class="btn btn-primary">Save Credentials</button>
+        </section>
+
+        <!-- Account Section -->
+        <section class="settings-section">
+          <h3>Google Account</h3>
+          <div id="account-status">
+            <p id="account-text">Not connected</p>
+            <button id="disconnect-btn" class="btn btn-danger hidden">Disconnect</button>
+          </div>
+        </section>
+
+        <!-- Email Reminders Section -->
+        <section class="settings-section">
+          <h3>Email Reminders</h3>
+          <div class="form-group">
+            <label class="toggle-label">
+              <input type="checkbox" id="reminders-enabled">
+              <span>Enable daily email reminders</span>
+            </label>
+          </div>
+          <div id="email-settings" class="email-settings">
+            <div class="form-group">
+              <label for="recipient-email">Your Email Address</label>
+              <input type="email" id="recipient-email" placeholder="you@example.com">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="smtp-host">SMTP Host</label>
+                <input type="text" id="smtp-host" value="smtp.gmail.com">
+              </div>
+              <div class="form-group">
+                <label for="smtp-port">Port</label>
+                <input type="number" id="smtp-port" value="587">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="smtp-user">SMTP Username</label>
+              <input type="email" id="smtp-user" placeholder="your-email@gmail.com">
+            </div>
+            <div class="form-group">
+              <label for="smtp-pass">SMTP Password / App Password</label>
+              <input type="password" id="smtp-pass" placeholder="Your app-specific password">
+              <p class="help-text">For Gmail, use an App Password from your Google Account security settings.</p>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="morning-time">Morning Reminder</label>
+                <input type="time" id="morning-time" value="07:00">
+              </div>
+              <div class="form-group">
+                <label for="evening-time">Evening Reminder</label>
+                <input type="time" id="evening-time" value="19:00">
+              </div>
+            </div>
+            <div class="button-row">
+              <button id="save-email-btn" class="btn btn-primary">Save Email Settings</button>
+              <button id="test-email-btn" class="btn btn-secondary">Send Test Email</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credentials Help Modal -->
+  <div id="credentials-help-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2>Setting Up Google API Credentials</h2>
+        <button id="close-credentials-help" class="btn btn-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ol class="setup-steps">
+          <li>
+            <strong>Go to Google Cloud Console</strong>
+            <p>Visit <code>console.cloud.google.com</code> and sign in with your Google account.</p>
+          </li>
+          <li>
+            <strong>Create a New Project</strong>
+            <p>Click "Select a project" at the top, then "New Project". Name it "Popes Appointment Tracker".</p>
+          </li>
+          <li>
+            <strong>Enable Google Calendar API</strong>
+            <p>Go to "APIs & Services" > "Library", search for "Google Calendar API", and click "Enable".</p>
+          </li>
+          <li>
+            <strong>Configure OAuth Consent Screen</strong>
+            <p>Go to "APIs & Services" > "OAuth consent screen":</p>
+            <ul>
+              <li>Choose "External" user type</li>
+              <li>Fill in App name: "Popes Appointment Tracker"</li>
+              <li>Add your email as support email</li>
+              <li>Add your email to test users</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Create OAuth Credentials</strong>
+            <p>Go to "APIs & Services" > "Credentials":</p>
+            <ul>
+              <li>Click "Create Credentials" > "OAuth client ID"</li>
+              <li>Application type: "Desktop app"</li>
+              <li>Name: "Popes Tracker Desktop"</li>
+              <li>Click "Create"</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Copy Your Credentials</strong>
+            <p>Copy the "Client ID" and "Client Secret" shown, and paste them in the settings above.</p>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script src="categorizer.js"></script>
+  <script src="calendar.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
