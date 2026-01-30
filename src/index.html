@@ -66,6 +66,7 @@
         <div class="view-toggle">
           <button id="week-view-btn" class="view-btn active">Week</button>
           <button id="month-view-btn" class="view-btn">Month</button>
+          <button id="agenda-view-btn" class="view-btn">Agenda</button>
         </div>
         <button id="refresh-btn" class="btn btn-icon" title="Refresh">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -78,6 +79,15 @@
 
       <!-- Calendar Container -->
       <div id="calendar"></div>
+
+      <!-- Agenda View Container -->
+      <div id="agenda-view" class="agenda-view hidden">
+        <div class="agenda-header">
+          <h2>Upcoming Events</h2>
+          <p class="agenda-subtitle">Next 6 months</p>
+        </div>
+        <div id="agenda-content"></div>
+      </div>
 
       <!-- Loading Overlay -->
       <div id="loading-overlay" class="loading-overlay hidden">

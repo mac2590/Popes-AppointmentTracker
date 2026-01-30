@@ -8,6 +8,7 @@ class CalendarManager {
     this.calendar = null;
     this.currentView = 'timeGridWeek';
     this.events = [];
+    this.isAgendaView = false;
   }
 
   /**
@@ -62,19 +63,148 @@ class CalendarManager {
   }
 
   /**
-   * Switch between week and month views
-   * @param {string} view - 'week' or 'month'
+   * Switch between week, month, and agenda views
+   * @param {string} view - 'week', 'month', or 'agenda'
    */
   setView(view) {
-    if (view === 'week') {
-      this.currentView = 'timeGridWeek';
-    } else if (view === 'month') {
-      this.currentView = 'dayGridMonth';
+    const calendarEl = document.getElementById('calendar');
+    const agendaEl = document.getElementById('agenda-view');
+
+    if (view === 'agenda') {
+      this.isAgendaView = true;
+      calendarEl.classList.add('hidden');
+      agendaEl.classList.remove('hidden');
+      this.loadAgendaEvents();
+    } else {
+      this.isAgendaView = false;
+      calendarEl.classList.remove('hidden');
+      agendaEl.classList.add('hidden');
+
+      if (view === 'week') {
+        this.currentView = 'timeGridWeek';
+      } else if (view === 'month') {
+        this.currentView = 'dayGridMonth';
+      }
+
+      if (this.calendar) {
+        this.calendar.changeView(this.currentView);
+      }
+    }
+  }
+
+  /**
+   * Load events for agenda view (next 6 months)
+   */
+  async loadAgendaEvents() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+
+    // Check if authenticated
+    const authStatus = await window.electronAPI.checkAuth();
+    if (!authStatus.isAuthenticated) {
+      document.getElementById('agenda-content').innerHTML =
+        '<p class="agenda-empty">Connect to Google Calendar to see your events</p>';
+      return;
     }
 
-    if (this.calendar) {
-      this.calendar.changeView(this.currentView);
+    loadingOverlay.classList.remove('hidden');
+
+    try {
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + 6);
+
+      const result = await window.electronAPI.fetchEvents({
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      });
+
+      if (result.success) {
+        this.renderAgendaView(result.events);
+      } else {
+        document.getElementById('agenda-content').innerHTML =
+          '<p class="agenda-empty">Could not load events</p>';
+      }
+    } catch (error) {
+      console.error('Error loading agenda events:', error);
+      document.getElementById('agenda-content').innerHTML =
+        '<p class="agenda-empty">Error loading events</p>';
+    } finally {
+      loadingOverlay.classList.add('hidden');
     }
+  }
+
+  /**
+   * Render agenda view with events grouped by month
+   */
+  renderAgendaView(events) {
+    const container = document.getElementById('agenda-content');
+
+    if (!events || events.length === 0) {
+      container.innerHTML = '<p class="agenda-empty">No upcoming events</p>';
+      return;
+    }
+
+    // Sort events by start date
+    const sortedEvents = events.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+    // Group events by month
+    const groupedByMonth = {};
+    sortedEvents.forEach(event => {
+      const date = new Date(event.start);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthLabel = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      if (!groupedByMonth[monthKey]) {
+        groupedByMonth[monthKey] = { label: monthLabel, events: [] };
+      }
+      groupedByMonth[monthKey].events.push(event);
+    });
+
+    // Render HTML
+    let html = '';
+    Object.keys(groupedByMonth).sort().forEach(monthKey => {
+      const month = groupedByMonth[monthKey];
+      html += `<div class="agenda-month">
+        <h3 class="agenda-month-header">${month.label}</h3>
+        <div class="agenda-events">`;
+
+      month.events.forEach(event => {
+        const date = new Date(event.start);
+        const category = window.Categorizer.categorize(event.title);
+        const emoji = window.Categorizer.getCategoryEmoji(category);
+        const color = window.Categorizer.getCategoryColor(category);
+
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        const dayNum = date.getDate();
+
+        let timeStr = '';
+        if (event.allDay) {
+          timeStr = 'All day';
+        } else {
+          timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        }
+
+        html += `
+          <div class="agenda-item" style="--category-color: ${color}">
+            <div class="agenda-date">
+              <span class="agenda-day-name">${dayName}</span>
+              <span class="agenda-day-num">${dayNum}</span>
+            </div>
+            <div class="agenda-event-details">
+              <div class="agenda-event-title">${emoji} ${event.title}</div>
+              <div class="agenda-event-meta">
+                <span class="agenda-event-time">${timeStr}</span>
+                ${event.location ? `<span class="agenda-event-location">${event.location}</span>` : ''}
+                ${event.calendarName ? `<span class="agenda-event-calendar">${event.calendarName}</span>` : ''}
+              </div>
+            </div>
+          </div>`;
+      });
+
+      html += '</div></div>';
+    });
+
+    container.innerHTML = html;
   }
 
   /**

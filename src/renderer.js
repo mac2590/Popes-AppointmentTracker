@@ -54,6 +54,7 @@ function setupEventListeners() {
   // View toggle buttons
   document.getElementById('week-view-btn').addEventListener('click', () => setView('week'));
   document.getElementById('month-view-btn').addEventListener('click', () => setView('month'));
+  document.getElementById('agenda-view-btn').addEventListener('click', () => setView('agenda'));
 
   // Refresh button
   document.getElementById('refresh-btn').addEventListener('click', () => {
@@ -171,12 +172,13 @@ function updateConnectionStatus(isConnected) {
 
 /**
  * Set calendar view
- * @param {string} view - 'week' or 'month'
+ * @param {string} view - 'week', 'month', or 'agenda'
  */
 function setView(view) {
   // Update button states
   document.getElementById('week-view-btn').classList.toggle('active', view === 'week');
   document.getElementById('month-view-btn').classList.toggle('active', view === 'month');
+  document.getElementById('agenda-view-btn').classList.toggle('active', view === 'agenda');
 
   // Update calendar
   window.calendarManager.setView(view);
