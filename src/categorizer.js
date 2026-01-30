@@ -9,10 +9,15 @@ const categories = {
     color: '#007AFF',
     emoji: '💼'
   },
-  business: {
-    keywords: ['business', 'startup', 'venture', 'project', 'investor', 'pitch', 'strategy', 'planning', 'launch', 'growth'],
+  brand: {
+    keywords: ['writing', 'posting', 'reaching out'],
     color: '#34C759',
     emoji: '🚀'
+  },
+  research: {
+    keywords: ['research', 'study', 'analysis', 'experiment', 'investigation', 'learning', 'course', 'workshop', 'reading', 'explore'],
+    color: '#8E8E93',
+    emoji: '🔬'
   },
   holiday: {
     keywords: ['holiday', 'vacation', 'trip', 'travel', 'flight', 'hotel', 'beach', 'resort', 'getaway', 'break'],
@@ -34,10 +39,10 @@ const categories = {
 /**
  * Categorize an event based on its title
  * @param {string} title - The event title
- * @returns {string} - The category name ('work', 'business', 'holiday', 'date', 'seb', or 'other')
+ * @returns {string} - The category name ('work', 'brand', 'holiday', 'date', 'seb', or 'research')
  */
 function categorize(title) {
-  if (!title) return 'other';
+  if (!title) return 'research';
 
   const lowerTitle = title.toLowerCase();
 
@@ -49,7 +54,7 @@ function categorize(title) {
     }
   }
 
-  return 'other';
+  return 'research';
 }
 
 /**
@@ -61,7 +66,7 @@ function getCategoryColor(category) {
   if (categories[category]) {
     return categories[category].color;
   }
-  return '#8E8E93'; // Default gray for 'other'
+  return categories.research.color; // Default to research
 }
 
 /**
@@ -73,7 +78,7 @@ function getCategoryEmoji(category) {
   if (categories[category]) {
     return categories[category].emoji;
   }
-  return '📅'; // Default calendar for 'other'
+  return categories.research.emoji; // Default to research
 }
 
 /**

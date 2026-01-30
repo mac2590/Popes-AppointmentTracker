@@ -8,7 +8,8 @@ A macOS desktop app to track family appointments with Google Calendar integratio
 - **Weekly/Monthly Views** - Toggle between calendar views
 - **Automatic Color-Coding** - Events are categorized by keywords:
   - 💼 **Work** (blue) - meetings, office, client, etc.
-  - 🚀 **Building Business** (green) - startup, venture, project, etc.
+  - 🚀 **Build Brand** (green) - writing, posting, reaching out
+  - 🔬 **Research Projects** (gray) - research, study, learning, etc.
   - 🏖️ **Holidays** (yellow) - vacation, trip, travel, etc.
   - 💕 **Date Nights** (pink) - date, dinner, romantic, etc.
   - 👦 **Seb** (purple) - school, pickup, practice, doctor, etc.

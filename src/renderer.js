@@ -87,6 +87,9 @@ function setupEventListeners() {
   document.getElementById('reminders-enabled').addEventListener('change', toggleEmailSettings);
   document.getElementById('save-email-btn').addEventListener('click', saveEmailSettings);
   document.getElementById('test-email-btn').addEventListener('click', testEmail);
+
+  // Calendar settings
+  document.getElementById('add-manual-calendar-btn').addEventListener('click', addManualCalendar);
 }
 
 /**
@@ -188,6 +191,9 @@ async function openSettings() {
   // Update account status
   const authStatus = await window.electronAPI.checkAuth();
   updateConnectionStatus(authStatus.isAuthenticated);
+
+  // Load calendar settings
+  await loadCalendarSettings();
 }
 
 /**
@@ -332,4 +338,156 @@ async function testEmail() {
       btn.textContent = 'Send Test Email';
     }, 2000);
   }
+}
+
+/**
+ * Load calendar settings (list and manual calendars)
+ */
+async function loadCalendarSettings() {
+  const authStatus = await window.electronAPI.checkAuth();
+
+  if (!authStatus.isAuthenticated) {
+    document.getElementById('calendar-list-placeholder').textContent = 'Connect to Google to see your calendars';
+    return;
+  }
+
+  // Load Google calendars
+  const result = await window.electronAPI.getCalendarList();
+
+  if (result.success) {
+    const selectedCalendars = await window.electronAPI.getSelectedCalendars();
+    renderCalendarList(result.calendars, selectedCalendars);
+  } else {
+    document.getElementById('calendar-list-placeholder').textContent = 'Could not load calendars';
+  }
+
+  // Load manual calendars
+  const manualCalendars = await window.electronAPI.getManualCalendars();
+  renderManualCalendars(manualCalendars);
+}
+
+/**
+ * Render calendar list with checkboxes
+ */
+function renderCalendarList(calendars, selectedCalendars) {
+  const container = document.getElementById('calendar-list');
+
+  if (calendars.length === 0) {
+    container.innerHTML = '<p class="help-text">No calendars found</p>';
+    return;
+  }
+
+  // If no calendars are selected, treat all as selected (default behavior)
+  const effectiveSelected = selectedCalendars.length === 0
+    ? calendars.map(c => c.id)
+    : selectedCalendars;
+
+  const html = calendars.map(cal => `
+    <label class="calendar-item">
+      <input type="checkbox"
+             value="${cal.id}"
+             ${effectiveSelected.includes(cal.id) ? 'checked' : ''}
+             onchange="handleCalendarToggle()">
+      <span class="calendar-color-dot" style="background-color: ${cal.color}"></span>
+      <span class="calendar-name">${cal.name}${cal.primary ? ' (Primary)' : ''}</span>
+    </label>
+  `).join('');
+
+  container.innerHTML = html;
+}
+
+/**
+ * Handle calendar checkbox toggle
+ */
+async function handleCalendarToggle() {
+  const checkboxes = document.querySelectorAll('#calendar-list input[type="checkbox"]');
+  const selectedIds = Array.from(checkboxes)
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+  await window.electronAPI.saveSelectedCalendars(selectedIds);
+
+  // Refresh the calendar view
+  window.calendarManager.refresh();
+}
+
+/**
+ * Add a manual calendar
+ */
+async function addManualCalendar() {
+  const idInput = document.getElementById('manual-calendar-id');
+  const nameInput = document.getElementById('manual-calendar-name');
+
+  const calendarId = idInput.value.trim();
+  const calendarName = nameInput.value.trim() || calendarId;
+
+  if (!calendarId) {
+    alert('Please enter a calendar ID');
+    return;
+  }
+
+  const manualCalendars = await window.electronAPI.getManualCalendars();
+
+  // Check if already exists
+  if (manualCalendars.some(c => c.id === calendarId)) {
+    alert('This calendar has already been added');
+    return;
+  }
+
+  manualCalendars.push({ id: calendarId, name: calendarName });
+  await window.electronAPI.saveManualCalendars(manualCalendars);
+
+  // Clear inputs
+  idInput.value = '';
+  nameInput.value = '';
+
+  // Re-render list
+  renderManualCalendars(manualCalendars);
+
+  // Refresh calendar
+  window.calendarManager.refresh();
+}
+
+/**
+ * Remove a manual calendar
+ */
+async function removeManualCalendar(calendarId) {
+  let manualCalendars = await window.electronAPI.getManualCalendars();
+  manualCalendars = manualCalendars.filter(c => c.id !== calendarId);
+  await window.electronAPI.saveManualCalendars(manualCalendars);
+
+  // Re-render list
+  renderManualCalendars(manualCalendars);
+
+  // Refresh calendar
+  window.calendarManager.refresh();
+}
+
+/**
+ * Render manual calendars list
+ */
+function renderManualCalendars(calendars) {
+  const container = document.getElementById('manual-calendar-list');
+
+  if (calendars.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const html = calendars.map(cal => `
+    <div class="manual-calendar-item">
+      <div class="manual-calendar-info">
+        <span class="manual-calendar-name">${cal.name}</span>
+        <span class="manual-calendar-id">${cal.id}</span>
+      </div>
+      <button class="btn btn-icon btn-delete" onclick="removeManualCalendar('${cal.id}')" title="Remove">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  `).join('');
+
+  container.innerHTML = html;
 }

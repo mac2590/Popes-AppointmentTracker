@@ -13,6 +13,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Calendar
   fetchEvents: (params) => ipcRenderer.invoke('fetch-events', params),
+  getCalendarList: () => ipcRenderer.invoke('get-calendar-list'),
+  getSelectedCalendars: () => ipcRenderer.invoke('get-selected-calendars'),
+  saveSelectedCalendars: (calendarIds) => ipcRenderer.invoke('save-selected-calendars', calendarIds),
+  getManualCalendars: () => ipcRenderer.invoke('get-manual-calendars'),
+  saveManualCalendars: (calendars) => ipcRenderer.invoke('save-manual-calendars', calendars),
 
   // Email settings
   getEmailSettings: () => ipcRenderer.invoke('get-email-settings'),

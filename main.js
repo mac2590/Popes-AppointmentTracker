@@ -193,12 +193,24 @@ ipcMain.handle('fetch-events', async (event, { startDate, endDate }) => {
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
   try {
+    // Get selected calendars and manual calendars
+    const selectedCalendars = store.get('selectedCalendars', []);
+    const manualCalendars = store.get('manualCalendars', []);
+
     // Get list of all calendars
     const calendarList = await calendar.calendarList.list();
     const allEvents = [];
 
-    // Fetch events from all calendars
-    for (const cal of calendarList.data.items) {
+    // Build list of calendars to fetch from
+    let calendarsToFetch = calendarList.data.items;
+
+    // Filter by selected calendars if any are selected
+    if (selectedCalendars.length > 0) {
+      calendarsToFetch = calendarsToFetch.filter(cal => selectedCalendars.includes(cal.id));
+    }
+
+    // Fetch events from selected calendars
+    for (const cal of calendarsToFetch) {
       try {
         const response = await calendar.events.list({
           calendarId: cal.id,
@@ -226,6 +238,35 @@ ipcMain.handle('fetch-events', async (event, { startDate, endDate }) => {
       }
     }
 
+    // Fetch events from manually added calendars
+    for (const manualCal of manualCalendars) {
+      try {
+        const response = await calendar.events.list({
+          calendarId: manualCal.id,
+          timeMin: startDate,
+          timeMax: endDate,
+          singleEvents: true,
+          orderBy: 'startTime'
+        });
+
+        const events = response.data.items.map(event => ({
+          id: event.id,
+          calendarId: manualCal.id,
+          calendarName: manualCal.name || manualCal.id,
+          title: event.summary || 'No Title',
+          description: event.description || '',
+          start: event.start.dateTime || event.start.date,
+          end: event.end.dateTime || event.end.date,
+          allDay: !event.start.dateTime,
+          location: event.location || ''
+        }));
+
+        allEvents.push(...events);
+      } catch (err) {
+        console.log(`Could not fetch events from manual calendar: ${manualCal.id}`);
+      }
+    }
+
     return { success: true, events: allEvents };
   } catch (error) {
     return { success: false, error: error.message };
@@ -235,6 +276,59 @@ ipcMain.handle('fetch-events', async (event, { startDate, endDate }) => {
 // Disconnect Google account
 ipcMain.handle('disconnect-google', () => {
   store.delete('googleTokens');
+  return { success: true };
+});
+
+// Get list of all calendars from Google
+ipcMain.handle('get-calendar-list', async () => {
+  const tokens = store.get('googleTokens');
+
+  if (!tokens) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  oauth2Client = createOAuth2Client();
+  if (!oauth2Client) {
+    return { success: false, error: 'Google credentials not configured' };
+  }
+
+  oauth2Client.setCredentials(tokens);
+
+  const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+  try {
+    const calendarList = await calendar.calendarList.list();
+    const calendars = calendarList.data.items.map(cal => ({
+      id: cal.id,
+      name: cal.summary,
+      color: cal.backgroundColor || '#007AFF',
+      primary: cal.primary || false
+    }));
+    return { success: true, calendars };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get selected calendar IDs
+ipcMain.handle('get-selected-calendars', () => {
+  return store.get('selectedCalendars', []);
+});
+
+// Save selected calendar IDs
+ipcMain.handle('save-selected-calendars', (event, calendarIds) => {
+  store.set('selectedCalendars', calendarIds);
+  return { success: true };
+});
+
+// Get manually added calendar IDs
+ipcMain.handle('get-manual-calendars', () => {
+  return store.get('manualCalendars', []);
+});
+
+// Save manually added calendar IDs
+ipcMain.handle('save-manual-calendars', (event, calendars) => {
+  store.set('manualCalendars', calendars);
   return { success: true };
 });
 
@@ -435,20 +529,20 @@ async function sendDailyReminder(type) {
 function generateEmailHtml(events, dayLabel) {
   const categoryColors = {
     work: '#007AFF',
-    business: '#34C759',
+    brand: '#34C759',
+    research: '#8E8E93',
     holiday: '#FFCC00',
     date: '#FF69B4',
-    seb: '#AF52DE',
-    other: '#8E8E93'
+    seb: '#AF52DE'
   };
 
   const categoryEmojis = {
     work: '💼',
-    business: '🚀',
+    brand: '🚀',
+    research: '🔬',
     holiday: '🏖️',
     date: '💕',
-    seb: '👦',
-    other: '📅'
+    seb: '👦'
   };
 
   const eventsHtml = events.map(event => `

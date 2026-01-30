@@ -38,12 +38,12 @@
       <div class="categories-section">
         <h3>Categories</h3>
         <ul class="category-legend">
-          <li><span class="category-dot work"></span> Work</li>
-          <li><span class="category-dot business"></span> Building Business</li>
-          <li><span class="category-dot holiday"></span> Holidays</li>
-          <li><span class="category-dot date"></span> Date Nights</li>
-          <li><span class="category-dot seb"></span> Seb</li>
-          <li><span class="category-dot other"></span> Other</li>
+          <li><span class="category-dot work"></span> 💼 Work</li>
+          <li><span class="category-dot brand"></span> 🚀 Build Brand</li>
+          <li><span class="category-dot research"></span> 🔬 Research Projects</li>
+          <li><span class="category-dot holiday"></span> 🏖️ Holidays</li>
+          <li><span class="category-dot date"></span> 💕 Date Nights</li>
+          <li><span class="category-dot seb"></span> 👦 Seb</li>
         </ul>
       </div>
 
@@ -123,6 +123,31 @@
           <div id="account-status">
             <p id="account-text">Not connected</p>
             <button id="disconnect-btn" class="btn btn-danger hidden">Disconnect</button>
+          </div>
+        </section>
+
+        <!-- Calendars Section -->
+        <section class="settings-section" id="calendars-section">
+          <h3>Calendars</h3>
+
+          <!-- Calendar selection list -->
+          <div id="calendar-list-container">
+            <p class="help-text">Select which calendars to display:</p>
+            <div id="calendar-list">
+              <p class="help-text" id="calendar-list-placeholder">Connect to Google to see your calendars</p>
+            </div>
+          </div>
+
+          <!-- Manual calendar input -->
+          <div class="manual-calendars">
+            <h4>Add Calendar by ID</h4>
+            <p class="help-text">Add shared calendars using their calendar ID (e.g., from Google Calendar sharing settings)</p>
+            <div class="manual-calendar-input">
+              <input type="text" id="manual-calendar-id" placeholder="calendar-id@group.calendar.google.com">
+              <input type="text" id="manual-calendar-name" placeholder="Display name (optional)">
+              <button id="add-manual-calendar-btn" class="btn btn-primary">Add</button>
+            </div>
+            <div id="manual-calendar-list"></div>
           </div>
         </section>
 
